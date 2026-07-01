@@ -2,13 +2,12 @@ import express from "express";
 import { connectToDatabase, closeDatabaseConnection } from "./config/mongodb.js";
 import exitHook from "async-exit-hook";
 import { env } from "./config/environment.js";
+import { v1Router } from "./routes/v1/index.js";
 
 const startServer = () => {
     const app = express();
 
-    app.get("/", async (req, res) => {
-        res.end("<h1>Hello World!</h1><hr>");
-    });
+    app.use("/v1", v1Router);
 
     app.listen(env.APP_PORT, env.APP_HOST, () => {
         console.log(`Server is running at ${env.APP_HOST}:${env.APP_PORT}/`);
