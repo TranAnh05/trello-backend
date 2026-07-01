@@ -1,26 +1,44 @@
-import express from 'express'
-import { mapOrder } from '~/utils/sorts.js'
+import express from "express";
+import { connectToDatabase, closeDatabaseConnection } from "./config/mongodb.js";
+import exitHook from "async-exit-hook";
+import { env } from "./config/environment.js";
 
-const app = express()
+const startServer = () => {
+    const app = express();
 
-const hostname = 'localhost'
-const port = 8017
+    app.get("/", async (req, res) => {
+        res.end("<h1>Hello World!</h1><hr>");
+    });
 
-app.get('/', (req, res) => {
-  // Test Absolute import mapOrder
-  console.log(mapOrder(
-    [ { id: 'id-1', name: 'One' },
-      { id: 'id-2', name: 'Two' },
-      { id: 'id-3', name: 'Three' },
-      { id: 'id-4', name: 'Four' },
-      { id: 'id-5', name: 'Five' } ],
-    ['id-5', 'id-4', 'id-2', 'id-3', 'id-1'],
-    'id'
-  ))
-  res.end('<h1>Hello World!</h1><hr>')
-})
+    app.listen(env.APP_PORT, env.APP_HOST, () => {
+        console.log(`Server is running at ${env.APP_HOST}:${env.APP_PORT}/`);
+    });
 
-app.listen(port, hostname, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Hello Van Anh, I am running at ${ hostname }:${ port }/`)
-})
+    /**
+     * Đóng kết nối database khi dừng server
+     * exitHook: Thư viện giúp xử lý các sự kiện khi ứng dụng Node.js thoát
+     * Khi ứng dụng Node.js thoát, exitHook sẽ gọi hàm closeDatabaseConnection để đóng kết nối MongoDB
+     */
+    exitHook(() => {
+        closeDatabaseConnection();
+    });
+};
+
+// chi khi ket noi duoc database thi moi start server
+// IIFE
+(async () => {
+    try {
+        await connectToDatabase();
+        console.log("Connected to MongoDB");
+
+        // Khoi tao server sau khi ket noi duoc database
+        startServer();
+    } catch (error) {
+        console.error("Error connecting to MongoDB:", error);
+        /**
+         * process.exit(0): Thoat app voi status code 0, khong co loi
+         * process.exit(1): Thoat app voi status code 1, co loi
+         */
+        process.exit(0);
+    }
+})();
