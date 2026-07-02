@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import { env } from "../config/environment.js";
 
 // Middleare xử lý lỗi tập trung trong ứng dụng Backend Node.js sử dụng Express
 export const errorHandlingMiddleware = (err, req, res, next) => {
@@ -13,6 +14,9 @@ export const errorHandlingMiddleware = (err, req, res, next) => {
     }
 
     // console.error(`Error:`, responseError);
+
+    // Nếu môi trường là production thì không trả về stack trace cho client, vì stack trace có thể chứa thông tin nhạy cảm
+    if(env.BUILD_MODE !== "development") delete responseError.stack;
 
     // Trả về lỗi cho client với status code và message lỗi
     res.status(responseError.statusCode).json(responseError);
