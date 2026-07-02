@@ -7,6 +7,9 @@ import { v1Router } from "./routes/v1/index.js";
 const startServer = () => {
     const app = express();
 
+    // Middleware để parse JSON body từ request
+    app.use(express.json());
+
     app.use("/v1", v1Router);
 
     app.listen(env.APP_PORT, env.APP_HOST, () => {
