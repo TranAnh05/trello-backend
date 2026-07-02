@@ -1,7 +1,8 @@
 import Joi from "joi";
 import { StatusCodes } from "http-status-codes";
+import ApiError from "../utils/ApiError.js";
 
-const createNew = async (req, res) => {
+const createNew = async (req, res, next) => {
     /**
      * Mặc định chúng ta không cần custom message ở phía backend, vì chúng ta sẽ custom message ở phía frontend
      * Backend chỉ cần validate dữ liệu và trả về message mặc định từ thư viện là được
@@ -20,13 +21,13 @@ const createNew = async (req, res) => {
          */
         await correctCondition.validateAsync(req.body, { abortEarly: false });
 
-        res.status(StatusCodes.CREATED).json({
-            message: "API create new board",
-        });
+        /**
+         * next(): Joi validate dữ liệu thành công, gọi next() để chuyển sang tầng tiếp theo
+         */
+        next();
     } catch (error) {
-        res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
-            errors: new Error(error).message,
-        });
+        // Nếu validate dữ liệu thất bại, thì gọi next() với đối tượng ApiError để chuyển sang tầng xử lý lỗi tập trung
+        next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message));
     }
 };
 

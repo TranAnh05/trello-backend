@@ -3,14 +3,18 @@ import { connectToDatabase, closeDatabaseConnection } from "./config/mongodb.js"
 import exitHook from "async-exit-hook";
 import { env } from "./config/environment.js";
 import { v1Router } from "./routes/v1/index.js";
+import { errorHandlingMiddleware } from "./middlewares/errorHandlingMiddleware.js";
 
 const startServer = () => {
     const app = express();
 
     // Middleware để parse JSON body từ request
     app.use(express.json());
-
+    
     app.use("/v1", v1Router);
+    
+    // Middleware xử lý lỗi tập trung
+    app.use(errorHandlingMiddleware);
 
     app.listen(env.APP_PORT, env.APP_HOST, () => {
         console.log(`Server is running at ${env.APP_HOST}:${env.APP_PORT}/`);
