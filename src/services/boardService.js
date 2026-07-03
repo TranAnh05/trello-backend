@@ -1,4 +1,5 @@
 import { slugify } from "../utils/formatters.js";
+import { boardModel } from "../models/boardModel.js";
 
 const createNew = async ( request ) => {
     try {
@@ -10,14 +11,18 @@ const createNew = async ( request ) => {
         }
 
         // Goi toi Model de xu ly luu ban ghi
+        const boardCreated = await boardModel.createNew(newBoard);
 
+        // Lay ban ghi vua duoc tao ra tu Model (Tuy vao du an, co the khong can thuc hien buoc nay)
+        const getNewBoard = await boardModel.findOneById(boardCreated.insertedId);
+        
         // Xu ly cac logic khac voi cac Collections lien quan tuy dac thu du an
         // Ban email, notification, log, ... 
         
         // Tra ve ket qua
-        return newBoard;
+        return getNewBoard;
     } catch (error) {
-
+        throw error;
     }
 }
 
