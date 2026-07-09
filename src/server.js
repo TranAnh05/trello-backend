@@ -5,9 +5,14 @@ import exitHook from 'async-exit-hook'
 import { env } from './config/environment.js'
 import { v1Router } from './routes/v1/index.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
+import cors from 'cors'
+import { corsOptions } from './config/cors.js'
 
 const startServer = () => {
   const app = express()
+
+  // Middleware để xử lý CORS
+  app.use(cors(corsOptions))
 
   // Middleware để parse JSON body từ request
   app.use(express.json())
