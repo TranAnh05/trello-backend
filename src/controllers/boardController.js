@@ -1,32 +1,32 @@
-import { StatusCodes } from "http-status-codes";
-import ApiError from "../utils/apiError.js";
-import { boardService } from "../services/boardService.js";
+import { StatusCodes } from 'http-status-codes'
+// import ApiError from '../utils/apiError.js'
+import { boardService } from '../services/boardService.js'
 
 const createNew = async (req, res, next) => {
-    try {
-        const createdBoard = await boardService.createNew(req.body);
-        res.status(StatusCodes.CREATED).json(createdBoard);
-    } catch (error) {
-        // Gọi next(error) để chuyển lỗi sang middleware xử lý lỗi tập trung
-        // next(error) sẽ gọi middleware errorHandlingMiddleware và truyền lỗi vào đó để xử lý
-        next(error);
-    }
-};
+  try {
+    const createdBoard = await boardService.createNew(req.body)
+    res.status(StatusCodes.CREATED).json(createdBoard)
+  } catch (error) {
+    // Gọi next(error) để chuyển lỗi sang middleware xử lý lỗi tập trung
+    // next(error) sẽ gọi middleware errorHandlingMiddleware và truyền lỗi vào đó để xử lý
+    next(error)
+  }
+}
 
 const getDetails = async (req, res, next) => {
-    try {
-        const boardId = req.params.id;
-        const board = await boardService.getDetails(boardId);
+  try {
+    const boardId = req.params.id
+    const board = await boardService.getDetails(boardId)
 
-        res.status(StatusCodes.OK).json(board);
-    } catch (error) {
-        // Gọi next(error) để chuyển lỗi sang middleware xử lý lỗi tập trung
-        // next(error) sẽ gọi middleware errorHandlingMiddleware và truyền lỗi vào đó để xử lý
-        next(error);
-    }
-};
+    res.status(StatusCodes.OK).json(board)
+  } catch (error) {
+    // Gọi next(error) để chuyển lỗi sang middleware xử lý lỗi tập trung
+    // next(error) sẽ gọi middleware errorHandlingMiddleware và truyền lỗi vào đó để xử lý
+    next(error)
+  }
+}
 
 export const boardController = {
-    createNew,
-    getDetails,
-};
+  createNew,
+  getDetails
+}
