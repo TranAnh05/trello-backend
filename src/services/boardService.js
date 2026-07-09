@@ -2,6 +2,7 @@ import { slugify } from '../utils/formatters.js'
 import { boardModel } from '../models/boardModel.js'
 import ApiError from '../utils/ApiError.js'
 import { StatusCodes } from 'http-status-codes'
+import { cloneDeep } from 'lodash'
 
 const createNew = async (request) => {
   try {
@@ -36,7 +37,19 @@ const getDetails = async (boardId) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found')
     }
 
-    return board
+    // Clone board ra mot cai moi de xu ly, khong anh huong toi board goc
+    const resBoard = cloneDeep(board)
+
+    resBoard.columns.forEach(column => {
+      // Cach 1 - ObjectId trong Mongodb co support cho equals de so sanh 2 ObjectId voi nhau
+      column.cards = resBoard.cards.filter(card => card.columnId.equals(column._id))
+      // Cach 2
+      // column.cards = resBoard.cards.filter(card => card.columnId.toString() === column._id.toString())
+    })
+
+    delete resBoard.cards
+
+    return resBoard
   } catch (error) {
     throw error
   }

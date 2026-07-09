@@ -2,6 +2,9 @@ import Joi from 'joi'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js'
 import { getDatabaseInstance } from '../config/mongodb.js'
 import { ObjectId } from 'mongodb'
+import { BOARD_TYPES } from '~/utils/constants.js'
+import { columnModel } from './columnModel.js'
+import { cardModel } from './cardModel.js'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -13,6 +16,7 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
   title: Joi.string().required().min(3).max(50).trim().strict(),
   slug: Joi.string().required().min(3).trim().strict(),
   description: Joi.string().required().min(3).max(256).trim().strict(),
+  type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required(),
 
   columnOrderIds: Joi.array()
     .items(
@@ -60,12 +64,35 @@ const findOneById = async (id) => {
 // Query tong hop (aggregate) de lay toan bo Columns va Cards thuoc ve Board
 const getDetails = async (boardId) => {
   try {
-    // Tam thoi dung giong findOneById, sau nay se dung aggregate de lay toan bo Columns va Cards thuoc ve Board
-    const board = await getDatabaseInstance()
+    //   .collection(BOARD_COLLECTION_NAME)
+    //   .findOne({ _id: new ObjectId(boardId) })
+    const result = await getDatabaseInstance()
       .collection(BOARD_COLLECTION_NAME)
-      .findOne({ _id: new ObjectId(boardId) })
-
-    return board
+      .aggregate([
+        {
+          $match: {
+            _id: new ObjectId(boardId),
+            _destroy: false
+          }
+        },
+        {
+          $lookup: {
+            from: columnModel.COLUMN_COLLECTION_NAME,
+            localField: '_id',
+            foreignField: 'boardId',
+            as: 'columns'
+          }
+        },
+        {
+          $lookup: {
+            from: cardModel.CARD_COLLECTION_NAME,
+            localField: '_id',
+            foreignField: 'boardId',
+            as: 'cards'
+          }
+        }
+      ]).toArray()
+    return result[0] || {}
   } catch (error) {
     throw new Error(error)
   }
