@@ -1,18 +1,18 @@
-import express from "express";
-import { StatusCodes } from "http-status-codes";
-import { boardValidation } from "../../validations/boardValidation.js";
-import { boardController } from "../../controllers/boardController.js";
+import express from 'express'
+import { StatusCodes } from 'http-status-codes'
+import { boardValidation } from '../../validations/boardValidation.js'
+import { boardController } from '../../controllers/boardController.js'
 
-const Router = express.Router();
+const Router = express.Router()
 
-Router.route("/")
-    .get((req, res) => {
-        res.status(StatusCodes.OK).json({
-            message: "Api get list board",
-        });
+Router.route('/')
+  .get((req, res) => {
+    res.status(StatusCodes.OK).json({
+      message: 'Api get list board'
     })
-    .post(boardValidation.createNew, boardController.createNew);
+  })
+  .post(boardValidation.createNew, boardController.createNew)
 
-Router.route("/:id").get(boardController.getDetails);
+Router.route('/:id').get(boardController.getDetails)
 // .put() // update
-export const boardRoutes = Router;
+export const boardRoutes = Router
