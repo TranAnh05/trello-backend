@@ -92,7 +92,24 @@ const getDetails = async (boardId) => {
           }
         }
       ]).toArray()
-    return result[0] || {}
+    return result[0] || null
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Push columnId vao cuoi mang columnOrderIds cua Board
+const pushColumnOrderIds = async (column) => {
+  try {
+    const result = await getDatabaseInstance()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(column.boardId) },
+        { $push: { columnOrderIds: new ObjectId(column._id) } },
+        { returnDocument: 'after' }
+      )
+
+    return result.value
   } catch (error) {
     throw new Error(error)
   }
@@ -103,5 +120,6 @@ export const boardModel = {
   BOARD_COLLECTION_SCHEMA,
   createNew,
   findOneById,
-  getDetails
+  getDetails,
+  pushColumnOrderIds
 }
