@@ -3,6 +3,8 @@ import { boardModel } from '../models/boardModel.js'
 import ApiError from '../utils/ApiError.js'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
+import { columnModel } from '../models/columnModel.js'
+import { cardModel } from '../models/cardModel.js'
 
 const createNew = async (request) => {
   try {
@@ -55,7 +57,40 @@ const getDetails = async (boardId) => {
   }
 }
 
+const update = async (boardId, reqBody) => {
+  try {
+    const updateData = {
+      ...reqBody,
+      updatedAt: Date.now()
+    }
+
+    const updatedBoard = await boardModel.update(boardId, updateData)
+
+    return updatedBoard
+  } catch (error) {
+    throw error
+  }
+}
+
+const moveCardToDifferentColumn = async (reqBody) => {
+  try {
+    const { currentCardId, prevColumnId, prevCardOrderIds, nextColumnId, nextCardOrderIds } = reqBody
+    // B1: Cap nhat cardOrderIds cua column cu
+    await columnModel.update(prevColumnId, { cardOrderIds: prevCardOrderIds, updatedAt: Date.now() })
+    // B2: Cap nhat cardOrderIds cua column moi
+    await columnModel.update(nextColumnId, { cardOrderIds: nextCardOrderIds, updatedAt: Date.now() })
+    // B3: Cap nhat lai columnId moi cua card da keo
+    await cardModel.update(currentCardId, { columnId: nextColumnId, updatedAt: Date.now() })
+
+    return { updateResult: 'Successfully!' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
-  getDetails
+  getDetails,
+  update,
+  moveCardToDifferentColumn
 }
