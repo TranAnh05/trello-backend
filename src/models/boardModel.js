@@ -118,6 +118,23 @@ const pushColumnOrderIds = async (column) => {
   }
 }
 
+// $pull: Xoa columnId khoi mang columnOrderIds cua Board
+const pullColumnOrderIds = async (column) => {
+  try {
+    const result = await getDatabaseInstance()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(column.boardId) },
+        { $pull: { columnOrderIds: new ObjectId(column._id) } },
+        { returnDocument: 'after' }
+      )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const update = async (boardId, updateData) => {
   try {
     // Loc nhung fields khong cho phep update
@@ -152,5 +169,6 @@ export const boardModel = {
   findOneById,
   getDetails,
   pushColumnOrderIds,
+  pullColumnOrderIds,
   update
 }
