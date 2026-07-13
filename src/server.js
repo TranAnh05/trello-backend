@@ -24,7 +24,7 @@ const startServer = () => {
 
   if (env.BUILD_MODE === 'production') {
     // production environment
-    app.listen(process.env.PORT, env.APP_HOST, () => {
+    app.listen(process.env.PORT, () => {
       console.log(`Server is running at ${process.env.PORT}`)
     })
   } else {

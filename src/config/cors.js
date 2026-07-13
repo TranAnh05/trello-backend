@@ -17,7 +17,7 @@ export const corsOptions = {
     }
 
     // Kiểm tra xem origin có phải là domain được chấp nhận hay không
-    if (WHITELIST_DOMAINS.includes(origin)) {
+    if (!origin || WHITELIST_DOMAINS.includes(origin)) {
       return callback(null, true)
     }
 
