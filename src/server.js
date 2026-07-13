@@ -22,9 +22,17 @@ const startServer = () => {
   // Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
 
-  app.listen(env.APP_PORT, env.APP_HOST, () => {
-    console.log(`Server is running at ${env.APP_HOST}:${env.APP_PORT}/`)
-  })
+  if (env.BUILD_MODE === 'production') {
+    // production environment
+    app.listen(process.env.PORT, env.APP_HOST, () => {
+      console.log(`Server is running at ${process.env.PORT}`)
+    })
+  } else {
+    // dev environment
+    app.listen(env.APP_PORT, env.APP_HOST, () => {
+      console.log(`Server is running at ${env.APP_HOST}:${env.APP_PORT}`)
+    })
+  }
 
   /**
    * Đóng kết nối database khi dừng server
