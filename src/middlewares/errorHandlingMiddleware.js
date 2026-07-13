@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { env } from '../config/environment.js'
 
 // Middleare xử lý lỗi tập trung trong ứng dụng Backend Node.js sử dụng Express
-export const errorHandlingMiddleware = (err, req, res) => {
+export const errorHandlingMiddleware = (err, req, res, next) => {
   // Nếu lỗi không có StatusCode, thì mặc định là 500 (Internal Server Error) (lỗi do Dev không cẩn thận)
   if (!err.statusCode) err.statusCode = StatusCodes.INTERNAL_SERVER_ERROR
 
