@@ -1,3 +1,5 @@
+import { pick } from 'lodash'
+
 export const slugify = (val) => {
   if (!val) return ''
   return String(val)
@@ -13,3 +15,8 @@ export const slugify = (val) => {
 // eslint-disable-next-line no-console
 // console.log(slugify('The Quick Brown Fox Jumps Over The Lazy Dog! '))
 // "the-quick-brown-fox-jumps-over-the-lazy-dog"
+
+export const pickUser = (user) => {
+  if (!user) return null
+  return pick(user, ['_id', 'email', 'username', 'displayName', 'avatar', 'role', 'isActive', 'createdAt', 'updatedAt'])
+}
