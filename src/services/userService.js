@@ -87,7 +87,7 @@ const login = async (request) => {
     }
 
     if (!bcryptjs.compareSync(request.password, existingUser.password)) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Your email or password is incorrect!')
+      throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Your email or password is incorrect!')
     }
 
     // Thong tin trong JWT token: _id, email
@@ -130,9 +130,39 @@ const refreshToken = async (refreshToken) => {
   }
 }
 
+const update = async (userId, updateData) => {
+  try {
+    const existingUser = await userModel.findOneById(userId)
+    if (!existingUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
+    if (!existingUser.isActive) throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Account has not been verified!')
+
+    let updatedUser = {}
+
+    // Case change password
+    if (updateData.current_password && updateData.new_password) {
+      // Check current password is correct?
+      if (!bcryptjs.compareSync(updateData.current_password, existingUser.password)) {
+        throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Your current password is incorrect!')
+      }
+
+      updatedUser = await userModel.update(userId, {
+        password: bcryptjs.hashSync(updateData.new_password, 8)
+      })
+    } else {
+      // Case change common info (displayName, ...)
+      updatedUser = await userModel.update(userId, updateData)
+    }
+
+    return pickUser(updatedUser)
+  } catch (error) {
+    throw error
+  }
+}
+
 export const userService = {
   createNew,
   verifyAccount,
   login,
-  refreshToken
+  refreshToken,
+  update
 }
