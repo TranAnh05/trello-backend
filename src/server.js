@@ -7,9 +7,19 @@ import { v1Router } from './routes/v1/index.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
 import cors from 'cors'
 import { corsOptions } from './config/cors.js'
+import cookieParser from 'cookie-parser'
 
 const startServer = () => {
   const app = express()
+
+  // Fix Cache from disk cua ExpressJS
+  app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store')
+    next()
+  })
+
+  // Cau hinh Cookie Parser
+  app.use(cookieParser())
 
   // Middleware để xử lý CORS
   app.use(cors(corsOptions))
