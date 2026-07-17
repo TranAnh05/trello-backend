@@ -1,10 +1,11 @@
-import { slugify } from '../utils/formatters.js'
-import { boardModel } from '../models/boardModel.js'
-import ApiError from '../utils/ApiError.js'
+import { slugify } from '~/utils/formatters.js'
+import { boardModel } from '~/models/boardModel.js'
+import ApiError from '~/utils/ApiError.js'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
-import { columnModel } from '../models/columnModel.js'
-import { cardModel } from '../models/cardModel.js'
+import { columnModel } from '~/models/columnModel.js'
+import { cardModel } from '~/models/cardModel.js'
+import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants.js'
 
 const createNew = async (request) => {
   try {
@@ -88,9 +89,21 @@ const moveCardToDifferentColumn = async (reqBody) => {
   }
 }
 
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    if (!page) page = DEFAULT_PAGE
+    if (!itemsPerPage) itemsPerPage = DEFAULT_ITEMS_PER_PAGE
+    const results = await boardModel.getBoards(userId, parseInt(page, 10), parseInt(itemsPerPage, 10))
+    return results
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
   getDetails,
   update,
-  moveCardToDifferentColumn
+  moveCardToDifferentColumn,
+  getBoards
 }

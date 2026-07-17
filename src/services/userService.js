@@ -8,6 +8,7 @@ import { WEBSITE_DOMAIN } from '~/utils/constants.js'
 import { ResendProvider } from '~/providers/ResendProvider.js'
 import { env } from '~/config/environment.js'
 import { JwtProvider } from '~/providers/JwtProvider.js'
+import { cloudinaryProvider } from '~/providers/cloudinaryProvider.js'
 
 const createNew = async (request) => {
   try {
@@ -130,7 +131,7 @@ const refreshToken = async (refreshToken) => {
   }
 }
 
-const update = async (userId, updateData) => {
+const update = async (userId, updateData, userAvatarFile) => {
   try {
     const existingUser = await userModel.findOneById(userId)
     if (!existingUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
@@ -147,6 +148,14 @@ const update = async (userId, updateData) => {
 
       updatedUser = await userModel.update(userId, {
         password: bcryptjs.hashSync(updateData.new_password, 8)
+      })
+    } else if (userAvatarFile) {
+      // Case update avatar to cloudinary
+      const uploadResult = await cloudinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
+
+      // luu url avatar vao database
+      updatedUser = await userModel.update(userId, {
+        avatar: uploadResult.secure_url
       })
     } else {
       // Case change common info (displayName, ...)

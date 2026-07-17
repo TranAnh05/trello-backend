@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb'
 import { BOARD_TYPES } from '~/utils/constants.js'
 import { columnModel } from './columnModel.js'
 import { cardModel } from './cardModel.js'
+import { pagingSkipValue } from '~/utils/algorithms.js'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -19,6 +20,22 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
   type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required(),
 
   columnOrderIds: Joi.array()
+    .items(
+      Joi.string()
+        .pattern(OBJECT_ID_RULE)
+        .message(OBJECT_ID_RULE_MESSAGE)
+    )
+    .default([]),
+
+  ownerIds: Joi.array()
+    .items(
+      Joi.string()
+        .pattern(OBJECT_ID_RULE)
+        .message(OBJECT_ID_RULE_MESSAGE)
+    )
+    .default([]),
+
+  memberIds: Joi.array()
     .items(
       Joi.string()
         .pattern(OBJECT_ID_RULE)
@@ -162,6 +179,52 @@ const update = async (boardId, updateData) => {
   }
 }
 
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    const queryConditions = [
+      // Dieu kien 1: Board chua bi xoa
+      { _destroy: false },
+      // Dieu kien 2: UserId thuoc 1 trong 2 mang memberIds hoac ownerIds
+      { $or: [
+        { ownerIds: { $all: [new ObjectId(userId)] } },
+        { memberIds: { $all: [new ObjectId(userId)] } }
+      ] }
+    ]
+
+    const query = await getDatabaseInstance()
+      .collection(BOARD_COLLECTION_NAME)
+      .aggregate(
+        [
+          { $match: { $and: queryConditions } },
+          // sort title: sap xep title tu A -> Z
+          { $sort: { title: 1 } },
+          // $facet: De xu ly nhieu luong du lieu trong 1 query
+          { $facet: {
+            // Luong 1: Query boards
+            'queryBoards': [
+              { $skip: pagingSkipValue(page, itemsPerPage) },
+              { $limit: itemsPerPage }
+            ],
+
+            // Luong 2: Query tong so luong ban ghi boards trong db va gan vao bien countedAllBoards
+            'queryTotalBoards': [{ $count: 'countedAllBoards' }]
+          } }
+        ],
+        // Fix bug: B hoa va a thuong o tren
+        { collation: { locale: 'en' } }
+      ).toArray()
+
+    const res = query[0]
+
+    return {
+      boards: res.queryBoards || [],
+      totalBoards: res.queryTotalBoards[0]?.countedAllBoards || 0
+    }
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const boardModel = {
   BOARD_COLLECTION_NAME,
   BOARD_COLLECTION_SCHEMA,
@@ -170,5 +233,6 @@ export const boardModel = {
   getDetails,
   pushColumnOrderIds,
   pullColumnOrderIds,
-  update
+  update,
+  getBoards
 }
