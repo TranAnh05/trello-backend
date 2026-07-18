@@ -1,3 +1,4 @@
+import { cloudinaryProvider } from '~/providers/cloudinaryProvider.js'
 import { cardModel } from '../models/cardModel.js'
 import { columnModel } from '../models/columnModel.js'
 
@@ -22,14 +23,24 @@ const createNew = async (request) => {
   }
 }
 
-const update = async (cardId, request) => {
+const update = async (cardId, request, cardCoverFile) => {
   try {
     const updateData = {
       ...request,
       updatedAt: Date.now()
     }
 
-    const updatedCard = await cardModel.update(cardId, updateData)
+    let updatedCard = {}
+
+    if (cardCoverFile) {
+      const uploadResult = await cloudinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
+      updatedCard = await cardModel.update(cardId, {
+        cover: uploadResult.secure_url
+      })
+    } else {
+      updatedCard = await cardModel.update(cardId, updateData)
+    }
+
     return updatedCard
   } catch (error) {
     throw error

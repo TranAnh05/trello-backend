@@ -6,6 +6,7 @@ import { BOARD_TYPES } from '~/utils/constants.js'
 import { columnModel } from './columnModel.js'
 import { cardModel } from './cardModel.js'
 import { pagingSkipValue } from '~/utils/algorithms.js'
+import { userModel } from './userModel.js'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -115,6 +116,26 @@ const getDetails = async (userId, boardId) => {
             localField: '_id',
             foreignField: 'boardId',
             as: 'cards'
+          }
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'ownerIds',
+            foreignField: '_id',
+            as: 'owners',
+            // pipeline trong lookup la de xu ly 1 hoac nhieu luong can thiet
+            // project: de chi dinh vai field khong muon lay ve bang cach gan no gia tri 0
+            pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
+          }
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'memberIds',
+            foreignField: '_id',
+            as: 'members',
+            pipeline: [{ $project: { 'password': 0, 'verifyToken': 0 } }]
           }
         }
       ]).toArray()
