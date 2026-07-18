@@ -57,13 +57,17 @@ const validateBeforeCreate = async (data) => {
   })
 }
 
-const createNew = async (data) => {
+const createNew = async (userId, data) => {
   try {
     const validData = await validateBeforeCreate(data)
+    const newBoardToAdd = {
+      ...validData,
+      ownerIds: [new ObjectId(userId)]
+    }
 
     return await getDatabaseInstance()
       .collection(BOARD_COLLECTION_NAME)
-      .insertOne(validData)
+      .insertOne(newBoardToAdd)
   } catch (error) {
     throw new Error(error)
   }
@@ -82,19 +86,21 @@ const findOneById = async (id) => {
 }
 
 // Query tong hop (aggregate) de lay toan bo Columns va Cards thuoc ve Board
-const getDetails = async (boardId) => {
+const getDetails = async (userId, boardId) => {
   try {
-    //   .collection(BOARD_COLLECTION_NAME)
-    //   .findOne({ _id: new ObjectId(boardId) })
+    const queryConditions = [
+      { _id: new ObjectId(boardId) },
+      { _destroy: false },
+      { $or: [
+        { ownerIds: { $all: [new ObjectId(userId)] } },
+        { memberIds: { $all: [new ObjectId(userId)] } }
+      ] }
+    ]
+
     const result = await getDatabaseInstance()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate([
-        {
-          $match: {
-            _id: new ObjectId(boardId),
-            _destroy: false
-          }
-        },
+        { $match: { $and: queryConditions } },
         {
           $lookup: {
             from: columnModel.COLUMN_COLLECTION_NAME,

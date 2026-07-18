@@ -22,6 +22,21 @@ const createNew = async (request) => {
   }
 }
 
+const update = async (cardId, request) => {
+  try {
+    const updateData = {
+      ...request,
+      updatedAt: Date.now()
+    }
+
+    const updatedCard = await cardModel.update(cardId, updateData)
+    return updatedCard
+  } catch (error) {
+    throw error
+  }
+}
+
 export const cardService = {
-  createNew
+  createNew,
+  update
 }
