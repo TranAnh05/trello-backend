@@ -23,7 +23,7 @@ const createNew = async (request) => {
   }
 }
 
-const update = async (cardId, request, cardCoverFile) => {
+const update = async (cardId, request, cardCoverFile, userInfo) => {
   try {
     const updateData = {
       ...request,
@@ -37,6 +37,15 @@ const update = async (cardId, request, cardCoverFile) => {
       updatedCard = await cardModel.update(cardId, {
         cover: uploadResult.secure_url
       })
+    } else if (updateData.commentToAdd) {
+      const commentData = {
+        ...updateData.commentToAdd,
+        commentedAt: Date.now(),
+        userId: userInfo._id,
+        userEmail: userInfo.email
+      }
+
+      updatedCard = await cardModel.unShiftNewComment(cardId, commentData)
     } else {
       updatedCard = await cardModel.update(cardId, updateData)
     }

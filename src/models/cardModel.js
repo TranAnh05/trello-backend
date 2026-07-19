@@ -110,11 +110,34 @@ const deleteManyByColumnId = async (columnId) => {
   }
 }
 
+/**
+ * MongoDB hien tai chi co $push: day phần tử vào cuối mảng
+ * solution: van dung $push nhung se boc data vao array de trong $each va chi dinh $position: 0
+ */
+
+const unShiftNewComment = async (cardId, commentData) => {
+  try {
+
+    const result = await getDatabaseInstance()
+      .collection(CARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(cardId) },
+        { $push: { comments: { $each: [commentData], $position: 0 } } },
+        { returnDocument: 'after' }
+      )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
   createNew,
   findOneById,
   update,
-  deleteManyByColumnId
+  deleteManyByColumnId,
+  unShiftNewComment
 }
