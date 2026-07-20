@@ -8,6 +8,9 @@ import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.j
 import cors from 'cors'
 import { corsOptions } from './config/cors.js'
 import cookieParser from 'cookie-parser'
+import http from 'http'
+import socketIo from 'socket.io'
+import { inviteUserToBoardSocket } from '~/sockets/inviteUserToBoardSocket.js'
 
 const startServer = () => {
   const app = express()
@@ -32,14 +35,23 @@ const startServer = () => {
   // Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
 
+  // create a new server wrap express app to use socket.io
+  const server = http.createServer(app)
+  // config socket.io
+  const io = socketIo(server, { cors: corsOptions })
+  io.on('connection', (socket) => {
+    inviteUserToBoardSocket(socket)
+  })
+
+
   if (env.BUILD_MODE === 'production') {
     // production environment
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log(`Server is running at ${process.env.PORT}`)
     })
   } else {
     // dev environment
-    app.listen(env.APP_PORT, env.APP_HOST, () => {
+    server.listen(env.APP_PORT, env.APP_HOST, () => {
       console.log(`Server is running at ${env.APP_HOST}:${env.APP_PORT}`)
     })
   }
